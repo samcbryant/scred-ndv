@@ -35,8 +35,8 @@ value = pp.Word(pp.nums + '-' + r"''")('value') # Response value: Negative sign 
 cond = pp.Group(key + operation + value)('condition') # Phrase group for a single logical expression.
 joint = pp.oneOf('and or') # Phrases that join logical statements together.
 cond_chain_with_parentheses = pp.Forward() # Tells parser there may be paren chain coming, inserted by '<<=='
-cond_chain = pp.Optional('(') + cond + pp.Optional(')') + pp.Optional(joint + cond_chain_with_parentheses)
-cond_chain_with_parentheses <<= cond_chain | '(' + cond_chain + ')' # Inserted at previous pp.Forward()
+cond_chain = pp.Optional('(') + cond + pp.Optional(')') + pp.ZeroOrMore(joint + cond_chain_with_parentheses)
+cond_chain_with_parentheses <<= pp.Optional('(') + cond_chain + pp.Optional(')') # Inserted at previous pp.Forward()
 logic = cond_chain_with_parentheses + pp.StringEnd() # The full grammar
 
 # ---------------------------------------------------
