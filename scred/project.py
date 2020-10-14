@@ -200,6 +200,7 @@ class RecordsDownloader:
         # 2 lines until there are tests in place!
         # TEST: What if I pass records= as a param also? Which one wins?
 
+'''
 test_params = {"fields": ["field1", "field2", "NonExistentField"], "fakeparam": 25}
 test_records = ["ABC123", "ABC456", "NonExistentRecord"]
 syncer = RecordsDownloader(requester, chunksize=20, test_params)
@@ -207,3 +208,4 @@ def mock_sync():
     for content in syncer.fetch_records(test_records):
         instances = dtypes.RecordSet(content, primary_key="subj_id")
     # TODO: Do I want to be able to set up an empty RecordSet? Or combine them easily?
+'''
