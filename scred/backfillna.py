@@ -31,7 +31,7 @@ global key, operation, value, cond, joint, cond_chain, cond_chain_with_parenthes
 # Define elements of parser grammar
 key = pp.Word(pp.alphanums + '_')('key') # Variable name: alphanumeric + underscores.
 operation = pp.oneOf('> >= == != <= <')('operation') # Comparative operations.
-value = pp.Word(pp.nums + '-')('value') # Response value: Negative sign + digits.
+value = pp.Word(pp.nums + '-' + r"''")('value') # Response value: Negative sign + digits.
 cond = pp.Group(key + operation + value)('condition') # Phrase group for a single logical expression.
 joint = pp.oneOf('and or') # Phrases that join logical statements together.
 cond_chain_with_parentheses = pp.Forward() # Tells parser there may be paren chain coming, inserted by '<<=='
@@ -48,7 +48,10 @@ def list_to_ints(list_of_nums):
     Receives a list of nums because <fill in more when I review pyparsing again>
     """
     # It's ok that this casts to int--RC branching logic doesn't support floats
-    return [ int(k) for k in list_of_nums ]
+    try:
+        return [ int(k) for k in list_of_nums ]
+    except ValueError:
+        return [r"''"]
 
 value.setParseAction(list_to_ints)
 

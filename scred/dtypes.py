@@ -67,13 +67,21 @@ class Record(pd.DataFrame):
             raise AttributeError(f"Cannot run <this function> without column {col}")
         self[col] = default_value
 
-    def add_branching_logic(self, datadict):
+    def add_datadict_columns(self, datadict, datadict_cols):
         """
         Draws from metadata object to add branching logic to this record.
-        Do I want a new class called LogicFiller that operates on records? 
-        Seems like half of this class is just logic-filling. Maybe mixin with Parser? 
-        Or LogicFiller has/makes a Parser?
+        Do I want a new class called LogicFiller that operates on
+        records? Seems like half of this class is just logic-filling.
+        Maybe mixin with Parser? Or LogicFiller has/makes a Parser?
         """
+        datadict_cols.append("branching_logic")
+        for col in datadict_cols:
+            self.require_column(col)
+        
+        if len(datadict_cols) == 1:
+            datadict_cols = datadict_cols[0]
+            assert datadict_cols == "branching_logic"
+        
         self.require_column("branching_logic")
         if datadict.blogic_fmt == "redcap":
             datadict = datadict.copy()
@@ -84,13 +92,16 @@ class Record(pd.DataFrame):
                 base_field = varname.split("___")[0]
                 assert datadict.loc[base_field, "field_type"] == "checkbox"
             try:
-                base_logic = datadict.loc[base_field, "branching_logic"]
-                self.loc[varname, "branching_logic"] = base_logic
+                base_logic = datadict.loc[base_field, datadict_cols]
+                self.loc[varname, datadict_cols] = base_logic
             # Keep blank for overflow variables like `{instrument}_complete`
             except KeyError:
-                self.loc[varname, "branching_logic"] = ""
-                if not varname.endswith("_complete"): # not expected to exist in datadict
-                    warnings.warn(f"Cannot find {varname} in record and/or datadict")
+                self.loc[varname, datadict_cols] = ""
+                if not varname.endswith("_complete"):
+                    # "_complete" fields not expected to exist in datadict
+                    warnings.warn(
+                        f"Cannot find {varname} in record and/or datadict"
+                    )
 
     def _fill_na_values(self, datadict):
         """
@@ -119,12 +130,14 @@ class Record(pd.DataFrame):
         self.loc[ self["response"]=="", "response" ] = Record.BADCODE
         self.bdfilled = True
 
-    def fill_missing(self, datadict):
+    def fill_missing(self, datadict, datadict_cols = []):
         """
         Composite method to handle all logic conversion and backfilling. Convenience
         feature for users; recommended you use this when implementing.
         """
-        self.add_branching_logic(datadict)
+        for col in datadict_cols:
+            assert col in datadict.columns
+        self.add_datadict_columns(datadict, datadict_cols)
         self._fill_na_values(datadict)
         self._fill_bad_data()
     
@@ -173,7 +186,7 @@ class RecordSet(dict):
             raise ValueError(f"ID did not match template: {key}")
         super().__setitem__(key, value)
 
-    def fill_missing(self, metadata: "DataDictionary"):
+    def fill_missing(self, metadata: "DataDictionary", datadict_cols = []):
         """
         Iterate over records contained in this set. Call fill_missing method on
         each individual record; these are instances of scred.dtypes.Record, so we
@@ -181,7 +194,7 @@ class RecordSet(dict):
         data dictionary, `metadata`, is used to look up branching logic.
         """
         for record in self.values():
-            record.fill_missing(metadata)
+            record.fill_missing(metadata, datadict_cols)
             
     def as_dataframe(self):
         df = pd.DataFrame()
@@ -262,7 +275,14 @@ class DataDictionary(pd.DataFrame):
         clean = clean.replace("=", "==") # next lines fix >== and <==
         clean = clean.replace(">==", ">=")
         clean = clean.replace("<==", "<=")
+        clean = clean.replace(r"<>''","@@@")
+        clean = clean.replace(r"<> ''","@@@")
+        clean = clean.replace(r"==''","!!!")
+        clean = clean.replace(r"== ''","!!!")
         clean = clean.replace("'", "")
+        clean = clean.replace("@@@",r"<> ''")
+        clean = clean.replace("!!!",r"== ''")
+        clean = clean.replace("<>", "!=")
         clean = DataDictionary.convert_checkbox_names(clean)
         return clean
 
