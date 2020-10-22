@@ -135,6 +135,7 @@ class Record(pd.DataFrame):
         Composite method to handle all logic conversion and backfilling. Convenience
         feature for users; recommended you use this when implementing.
         """
+        print(f'filling missing for {self._id}')
         for col in datadict_cols:
             assert col in datadict.columns
         self.add_datadict_columns(datadict, datadict_cols)
