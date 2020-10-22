@@ -29,7 +29,7 @@ import pyparsing as pp
 global key, operation, value, cond, joint, cond_chain, cond_chain_with_parentheses, logic
 
 # Define elements of parser grammar
-key = pp.Word(pp.alphanums + '_' + r"''")('key') # Variable name: alphanumeric + underscores.
+key = pp.Word(pp.alphanums + '_')('key') # Variable name: alphanumeric + underscores.
 operation = pp.oneOf('> >= == != <= <')('operation') # Comparative operations.
 value = pp.Word(pp.nums + '-' + '.' + r"''")('value') # Response value: Negative sign + digits.
 cond = pp.Group(key + operation + value)('condition') # Phrase group for a single logical expression.
@@ -64,7 +64,7 @@ def check_condition(parsed):
     parsed = parsed[0] # Only has one result
     # Field names have been replaced with their responses by this point
     condition_pieces = " ".join(
-        [ str(x) for x in parsed ]
+        [ str(x) if x != '' else r"''" for x in parsed ]
     )
     try:
         return eval(condition_pieces)
