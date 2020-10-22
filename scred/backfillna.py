@@ -68,7 +68,7 @@ def check_condition(parsed):
     )
     try:
         return eval(condition_pieces)
-    except (SyntaxError, NameError): 
+    except (SyntaxError, NameError, TypeError): 
         return False # Handles blank result from key
 
 cond.setParseAction(check_condition)
