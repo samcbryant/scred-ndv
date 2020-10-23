@@ -7,6 +7,7 @@ Defines classes to represent various REDCap objects.
 import re
 import json
 import warnings
+import time
 from typing import Collection
 
 import pandas as pd
@@ -135,12 +136,16 @@ class Record(pd.DataFrame):
         Composite method to handle all logic conversion and backfilling. Convenience
         feature for users; recommended you use this when implementing.
         """
-        print(f'filling missing for {self._id}')
+        start = time.time()
+        print(f'filling missing for {self._id} -- {time.time()}')
         for col in datadict_cols:
             assert col in datadict.columns
         self.add_datadict_columns(datadict, datadict_cols)
+        print(f"added datadict cols -- {str(time.time() - start)}")
         self._fill_na_values(datadict)
+        print(f"added na values -- {str(time.time() - start)}")
         self._fill_bad_data()
+        print(f"added bad values -- {str(time.time() - start)}")
     
     def rcvalue(self, fieldname):
         """
