@@ -74,7 +74,10 @@ class Record(pd.DataFrame):
         records? Seems like half of this class is just logic-filling.
         Maybe mixin with Parser? Or LogicFiller has/makes a Parser?
         """
-        datadict_cols.append("branching_logic")
+        #print(f"datadict: {datadict}")
+        #print(f"add_datadict_cols: {datadict_cols}")
+        if "branching_logic" not in datadict_cols:
+            datadict_cols.append("branching_logic")
         for col in datadict_cols:
             self.require_column(col)
         
