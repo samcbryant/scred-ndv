@@ -100,7 +100,7 @@ class Record(pd.DataFrame):
             # Keep blank for overflow variables like `{instrument}_complete`
             except KeyError:
                 self.loc[varname, datadict_cols] = ""
-                if not varname.endswith("_complete") or varname.__eq__('redcap_repeat_instance') or varname.__eq__('redcap_repeat_instrument'):
+                if not varname.endswith("_complete") or varname.startswith("redcap_repeat_"): # or varname.__eq__('redcap_repeat_instrument'):
                     # "_complete" fields not expected to exist in datadict
                     warnings.warn(
                         f"Cannot find {varname} in record and/or datadict"
